@@ -25,7 +25,7 @@ from ..models.cit_oficinas_servicios import CitOficinaServicio
 from ..models.cit_servicios import CitServicio
 from ..models.oficinas import Oficina
 from ..models.permisos import Permiso
-from ..schemas.cit_citas import CitCitaIn, CitCitaOut, OneCitCitaOut
+from ..schemas.cit_citas import CitCitaIn, CitCitaOut, OneCitCitaOut, CitCitaConfirmadaOut, OneCitCitaConfirmadaOut
 from .cit_dias_disponibles import listar_dias_disponibles
 from .cit_horas_disponibles import listar_horas_disponibles
 from ..services.sendmail import MyRequestError, Email, PlantillaCitaCancelada, PlantillaCitaCreada
@@ -531,3 +531,41 @@ async def paginado(
 
     # Entregar
     return paginate(consulta.filter(CitCita.estatus == "A").order_by(CitCita.id.desc()))
+
+
+@cit_citas.patch("/confirmar_cita", response_model=OneCitCitaConfirmadaOut)
+async def confirmar_cita(
+    current_user: Annotated[UsuarioInDB, Depends(get_current_active_user)],
+    database: Annotated[Session, Depends(get_db)],
+    cit_cita_codigo_barras: str,
+):
+    """Detalle de una cita a partir de su código de barras"""
+    if current_user.permissions.get("CIT CITAS", 0) < Permiso.VER:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Forbidden")
+    cit_cita = database.query(CitCita).filter_by(codigo_barras=cit_cita_codigo_barras).first()
+    if not cit_cita:
+        return OneCitCitaConfirmadaOut(success=False, message="No existe esa cita")
+    if cit_cita.estatus != "A":
+        return OneCitCitaConfirmadaOut(success=False, message="No está habilitada esa cita")
+    if cit_cita.estado != "PENDIENTE" and cit_cita.estado != "ASISTIO":
+        return OneCitCitaConfirmadaOut(success=False, message="Esta cita no está en un estado PENDIENTE")
+    
+    # TODO: Cambiar asistencia
+    # TODO: Crear Turno
+
+    # Formar CitCitaConfirmadaOut
+    cit_cita_confirmada = CitCitaConfirmadaOut(
+        id=cit_cita.id,
+        cit_cliente_nombre=cit_cita.cit_cliente.nombre,
+        cit_cliente_telefono=cit_cita.cit_cliente.telefono,
+        cit_cliente_email=cit_cita.cit_cliente.email,
+        oficina_clave=cit_cita.oficina.clave,
+        oficina_descripcion_corta=cit_cita.oficina.descripcion_corta,
+        cit_servicio_clave=cit_cita.cit_servicio.clave,
+        cit_servicio_descripcion=cit_cita.cit_servicio.descripcion,
+        fecha=cit_cita.inicio.date(),
+        hora_inicio=cit_cita.inicio.strftime("%I:%M %p").lower(),
+        notas=cit_cita.notas,
+        turno_codigo="OCP-002", #cit_cita.turno,
+    )
+    return OneCitCitaConfirmadaOut(success=True, message=f"Cita confirmada de {cit_cita.id}", data=CitCitaConfirmadaOut.model_validate(cit_cita_confirmada))

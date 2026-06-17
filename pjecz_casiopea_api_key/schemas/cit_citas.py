@@ -59,3 +59,29 @@ class OneCitCitaOut(BaseModel):
     success: bool
     message: str
     data: CitCitaOut | None = None
+
+
+class CitCitaConfirmadaOut(BaseModel):
+    """Esquema para entregar una cita confirmada"""
+
+    id: uuid.UUID
+    cit_cliente_nombre: str
+    cit_cliente_email: str | None = None
+    cit_cliente_telefono: str | None = None
+    oficina_clave: str
+    oficina_descripcion_corta: str
+    cit_servicio_clave: str
+    cit_servicio_descripcion: str
+    fecha: date
+    hora_inicio: str
+    notas: str
+    turno_codigo: str
+    model_config = ConfigDict(from_attributes=True)
+
+
+class OneCitCitaConfirmadaOut(BaseModel):
+    """Esquema para entregar una cita confirmada"""
+
+    success: bool
+    message: str
+    data: CitCitaConfirmadaOut | None = None

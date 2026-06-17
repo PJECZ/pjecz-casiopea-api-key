@@ -1,6 +1,6 @@
 [project]
 name = "pjecz-casiopea-api-key"
-version = "1.4.2"
+version = "1.5.0"
 description = "API con autentificación APi-Key para comunicación con el sistema de gestión SAJI."
 authors = [
     "Guillermo Valdes <guillermo.valdes@pjecz.gob.mx>",

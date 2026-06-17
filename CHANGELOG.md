@@ -3,6 +3,13 @@
 Todos los cambios notables en este proyecto serán documentados en este archivo.
 El formato se basa en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/).
 
+## [1.5.0] - 2026-06-16 (Trabajando)
+
+### ✨ Mejoras
+
+- Nuevo _endpoint_ `confirmar_cita`. Al recibir el número de código de asistencia, se marca la asistencia y se genera un turno en el sistema de turnos, y se regresa toda esa información como resultado de la petición. Si ya existe la asistencia y el turno, solo regresar la información.
+
+
 ## [1.4.2] - 2026-06-11
 
 ### 🛠️ Cambios

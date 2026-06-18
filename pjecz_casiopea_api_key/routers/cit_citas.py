@@ -556,15 +556,18 @@ async def confirmar_cita(
     if cit_cita.estado != "PENDIENTE" and cit_cita.estado != "ASISTIO":
         return OneCitCitaConfirmadaOut(success=False, message="ADVERTENCIA: Esta cita no está en un estado PENDIENTE")
     
-    # Crear Turno
-    resultado, mensaje = _crear_turno(cit_cita)
-    if resultado == False:
-        return OneCitCitaConfirmadaOut(success=False, message=f"Error en el sistema de turnos: {mensaje}")
+    # Solo si está en estado PENDIENTE crea el turno y marca la asistencia,
+    # de lo contrario, solo regresa los datos ya procesados del turno.
+    if cit_cita.estado == "PENDIENTE":
+        # Crear Turno
+        resultado, mensaje = _crear_turno(cit_cita)
+        if resultado == False:
+            return OneCitCitaConfirmadaOut(success=False, message=f"Error en el sistema de turnos: {mensaje}")
 
-    # Añadir asistencia
-    cit_cita.asistencia = True
-    cit_cita.estado = "ASISTIO"
-    cit_cita.save()
+        # Añadir asistencia
+        cit_cita.asistencia = True
+        cit_cita.estado = "ASISTIO"
+        cit_cita.save()
 
     # Formar CitCitaConfirmadaOut
     cit_cita_confirmada = CitCitaConfirmadaOut(

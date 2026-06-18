@@ -8,7 +8,7 @@ from requests.exceptions import RequestException
 from json.decoder import JSONDecodeError
 from typing import Tuple
 
-from pjecz_casiopea_flask.config.settings import Settings
+from ..config.settings import Settings
 
 
 class MyAnyError(Exception):

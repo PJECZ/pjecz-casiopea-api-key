@@ -32,6 +32,10 @@ class Settings(BaseSettings):
     TZ: str = os.getenv("TZ", "America/Mexico_City")
     GOOGLE_APPLICATION_CREDENTIALS: str = os.getenv("GOOGLE_APPLICATION_CREDENTIALS", "")
     GCS_BUCKET_NAME: str = os.getenv("GCS_BUCKET_NAME", "")
+    TURNOS_API_KEY: str = os.getenv("TURNOS_API_KEY", "")
+    TURNOS_API_KEY_URL: str = os.getenv("TURNOS_API_KEY_URL", "")
+    TURNOS_USUARIO_ID: int = int(os.getenv("TURNOS_USUARIO_ID", "0"))
+    TURNOS_TIPO_ID: int = int(os.getenv("TURNOS_TIPO_ID", "0"))
 
     class Config:
         """Load configuration"""

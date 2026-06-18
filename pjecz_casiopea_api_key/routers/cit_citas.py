@@ -2,8 +2,9 @@
 Cit Citas, routers
 """
 
+import json
 from datetime import date, datetime, timedelta
-from typing import Annotated
+from typing import Annotated, Tuple
 
 import requests
 from fastapi import APIRouter, Depends, HTTPException, status
@@ -30,6 +31,7 @@ from .cit_dias_disponibles import listar_dias_disponibles
 from .cit_horas_disponibles import listar_horas_disponibles
 from ..services.sendmail import MyRequestError, Email, PlantillaCitaCancelada, PlantillaCitaCreada
 from ..services.codigo_barras import CodigoBarras
+from ..services.turnos import Turnos
 
 LIMITE_CITAS_PENDIENTES = 3
 
@@ -544,14 +546,25 @@ async def confirmar_cita(
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Forbidden")
     cit_cita = database.query(CitCita).filter_by(codigo_barras=cit_cita_codigo_barras).first()
     if not cit_cita:
-        return OneCitCitaConfirmadaOut(success=False, message="No existe esa cita")
+        return OneCitCitaConfirmadaOut(success=False, message="ERROR: No existe esta cita")
     if cit_cita.estatus != "A":
-        return OneCitCitaConfirmadaOut(success=False, message="No está habilitada esa cita")
+        return OneCitCitaConfirmadaOut(success=False, message="ADVERTENCIA: No está habilitada esa cita")
+    if cit_cita.inicio.date() != datetime.today().date():
+        return OneCitCitaConfirmadaOut(success=False, message="ADVERTENCIA: Esta cita no es para el día de hoy.")
+    if cit_cita.oficina.turnos_unidad_id is None:
+        return OneCitCitaConfirmadaOut(success=False, message="ERROR: La oficina no tiene una unidad de turnos asignada.")
     if cit_cita.estado != "PENDIENTE" and cit_cita.estado != "ASISTIO":
-        return OneCitCitaConfirmadaOut(success=False, message="Esta cita no está en un estado PENDIENTE")
+        return OneCitCitaConfirmadaOut(success=False, message="ADVERTENCIA: Esta cita no está en un estado PENDIENTE")
     
-    # TODO: Cambiar asistencia
-    # TODO: Crear Turno
+    # Crear Turno
+    resultado, mensaje = _crear_turno(cit_cita)
+    if resultado == False:
+        return OneCitCitaConfirmadaOut(success=False, message=f"Error en el sistema de turnos: {mensaje}")
+
+    # Añadir asistencia
+    cit_cita.asistencia = True
+    cit_cita.estado = "ASISTIO"
+    cit_cita.save()
 
     # Formar CitCitaConfirmadaOut
     cit_cita_confirmada = CitCitaConfirmadaOut(
@@ -566,6 +579,34 @@ async def confirmar_cita(
         fecha=cit_cita.inicio.date(),
         hora_inicio=cit_cita.inicio.strftime("%I:%M %p").lower(),
         notas=cit_cita.notas,
-        turno_codigo="OCP-002", #cit_cita.turno,
+        turno_codigo=cit_cita.turno,
     )
     return OneCitCitaConfirmadaOut(success=True, message=f"Cita confirmada de {cit_cita.id}", data=CitCitaConfirmadaOut.model_validate(cit_cita_confirmada))
+
+
+def _crear_turno(cit_cita: CitCita) -> Tuple[bool, str]:
+    """
+    Crea un nuevo turno en el sistema de turnos
+    :return El id del turno generado y el número de turno compuesto.
+    """
+
+    settings = get_settings()
+
+    payload = {
+        "usuario_id": settings.TURNOS_USUARIO_ID,
+        "turno_tipo_id": settings.TURNOS_TIPO_ID,
+        "turno_telefono": cit_cita.cit_cliente.telefono,
+        "unidad_id": cit_cita.oficina.turnos_unidad_id,
+        "comentarios": cit_cita.notas,
+    }
+    payload_json = json.dumps(payload)
+
+    turnos = Turnos(settings)
+    resultado, mensaje = turnos.crear_turno(payload_json)
+
+    if resultado:
+        cit_cita.turno_id = turnos.get_turno_id()
+        cit_cita.turno = turnos.get_turno_codigo()
+        cit_cita.save()
+
+    return resultado, mensaje

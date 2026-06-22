@@ -567,7 +567,9 @@ async def confirmar_cita(
         # Añadir asistencia
         cit_cita.asistencia = True
         cit_cita.estado = "ASISTIO"
-        cit_cita.save()
+        database.add(cit_cita)
+        database.commit()
+        database.refresh(cit_cita)
 
     # Formar CitCitaConfirmadaOut
     cit_cita_confirmada = CitCitaConfirmadaOut(
@@ -587,7 +589,7 @@ async def confirmar_cita(
     return OneCitCitaConfirmadaOut(success=True, message=f"Cita confirmada de {cit_cita.id}", data=CitCitaConfirmadaOut.model_validate(cit_cita_confirmada))
 
 
-def _crear_turno(cit_cita: CitCita) -> Tuple[bool, str]:
+def _crear_turno(cit_cita: CitCita, database: Session) -> Tuple[bool, str]:
     """
     Crea un nuevo turno en el sistema de turnos
     :return El id del turno generado y el número de turno compuesto.
@@ -610,6 +612,7 @@ def _crear_turno(cit_cita: CitCita) -> Tuple[bool, str]:
     if resultado:
         cit_cita.turno_id = turnos.get_turno_id()
         cit_cita.turno = turnos.get_turno_codigo()
-        cit_cita.save()
+        database.add(cit_cita)
+        database.commit()
 
     return resultado, mensaje

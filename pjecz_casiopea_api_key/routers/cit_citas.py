@@ -560,7 +560,7 @@ async def confirmar_cita(
     # de lo contrario, solo regresa los datos ya procesados del turno.
     if cit_cita.estado == "PENDIENTE":
         # Crear Turno
-        resultado, mensaje = _crear_turno(cit_cita)
+        resultado, mensaje = _crear_turno(cit_cita, database)
         if resultado == False:
             return OneCitCitaConfirmadaOut(success=False, message=f"Error en el sistema de turnos: {mensaje}")
 

@@ -3,11 +3,16 @@
 Todos los cambios notables en este proyecto serán documentados en este archivo.
 El formato se basa en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/).
 
-## [1.5.0] - 2026-06-18 (Trabajando)
+## [1.5.0] - 2026-06-23 (Trabajando)
 
 ### ✨ Mejoras
 
 - Nuevo _endpoint_ `confirmar_cita`. Al recibir el número de código de asistencia, se marca la asistencia y se genera un turno en el sistema de turnos, y se regresa toda esa información como resultado de la petición. Si ya existe la asistencia y el turno, solo regresar la información.
+
+### 🐞 Arreglado
+
+- En el _endpoint_ `cit-días-disponibles`, si se proporcionan `oficina_clave` y `cit_servicio_clave`, se filtran los días que ya no tienen horas disponibles para ese servicio en esa oficina.
+- Al consultar las horas disponibles, el límite de citas se aplica por servicio-oficina y no por oficina en general.
 
 
 ## [1.4.2] - 2026-06-11

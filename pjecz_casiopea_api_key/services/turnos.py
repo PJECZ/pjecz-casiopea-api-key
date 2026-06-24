@@ -50,8 +50,9 @@ class Turnos():
             try:
                 data = response.json()
                 if "success" in data and "message" in data:
-                    self._turno_id = data["data"]["turno_id"];
-                    self._turno_codigo = f'{data["data"]["unidad"]["clave"]}-{data["data"]["turno_numero"]}'
+                    if data["success"] is True:
+                        self._turno_id = data["data"]["turno_id"];
+                        self._turno_codigo = f'{data["data"]["unidad"]["clave"]}-{data["data"]["turno_numero"]}'
                     return data["success"], data["message"]
                 return False, "Respuesta JSON inválida desde el servidor de turnos."
 

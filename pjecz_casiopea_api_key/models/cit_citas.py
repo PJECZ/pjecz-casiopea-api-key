@@ -50,8 +50,10 @@ class CitCita(Base, UniversalMixin):
     codigo_asistencia: Mapped[str] = mapped_column(String(6), default="000000")
     codigo_acceso_id: Mapped[Optional[int]]
     codigo_acceso_url: Mapped[Optional[str]] = mapped_column(String(512))
+    codigo_acceso_url_whatsapp: Mapped[Optional[str]] = mapped_column(String(512))
     codigo_barras: Mapped[Optional[str]] = mapped_column(String(13))
     codigo_barras_url: Mapped[Optional[str]] = mapped_column(String(512))
+
     turno_id: Mapped[Optional[int]]
     turno: Mapped[Optional[str]] = mapped_column(String(16))
 

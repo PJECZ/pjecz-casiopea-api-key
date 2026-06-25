@@ -75,6 +75,8 @@ class CitCitaConfirmadaOut(BaseModel):
     fecha: date
     hora_inicio: str
     notas: str
+    codigo_acceso_url: str | None = None
+    codigo_acceso_url_whatsapp: str | None = None
     turno_codigo: str
     model_config = ConfigDict(from_attributes=True)
 

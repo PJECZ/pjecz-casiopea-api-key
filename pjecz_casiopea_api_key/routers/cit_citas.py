@@ -268,6 +268,9 @@ async def crear(
         codigo_acceso_url = contenido.get("imagen")
         if not codigo_acceso_url:
             return OneCitCitaOut(success=False, message="ERROR: Faltó la imagen en la respuesta de Control Acceso")
+        codigo_acceso_url_whatsapp = contenido.get("urlAcceso")
+        if not codigo_acceso_url_whatsapp:
+            return OneCitCitaOut(success=False, message="ERROR: Faltó la url de WhatsApp en la respuesta de Control Acceso")
 
         # Crear el código de barras de asistencia
         codigo_barras = CodigoBarras(database)
@@ -279,7 +282,6 @@ async def crear(
         except Exception as e:
             # Captura cualquier otro error inesperado durante la generación
             return OneCitCitaOut(success=False, message=f"ERROR: No se pudo generar el código de barras de asistencia. {e}")
-
 
     # Guardar
     cit_cita = CitCita(
@@ -584,6 +586,8 @@ async def confirmar_cita(
         fecha=cit_cita.inicio.date(),
         hora_inicio=cit_cita.inicio.strftime("%I:%M %p").lower(),
         notas=cit_cita.notas,
+        codigo_acceso_url=cit_cita.codigo_acceso_url,
+        codigo_acceso_url_whatsapp=cit_cita.codigo_acceso_url_whatsapp,
         turno_codigo=cit_cita.turno,
     )
     return OneCitCitaConfirmadaOut(success=True, message=f"Cita confirmada de {cit_cita.id}", data=CitCitaConfirmadaOut.model_validate(cit_cita_confirmada))

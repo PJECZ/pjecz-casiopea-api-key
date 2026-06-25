@@ -296,6 +296,7 @@ async def crear(
         codigo_asistencia=generar_codigo_asistencia(),
         codigo_acceso_id=codigo_acceso_id,
         codigo_acceso_url=codigo_acceso_url,
+        codigo_acceso_url_whatsapp=codigo_acceso_url_whatsapp,
         cancelar_antes=cancelar_antes,
         codigo_barras=codigo_barras_num,
         codigo_barras_url=codigo_barras_url,

@@ -3,10 +3,11 @@
 Todos los cambios notables en este proyecto serán documentados en este archivo.
 El formato se basa en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/).
 
-## [1.5.0] - 2026-06-23 (Trabajando)
+## [1.5.0] - 2026-07-01 (Trabajando)
 
 ### ✨ Mejoras
 
+- Se mejoró el código de barras, ahora se utiliza el primer dígito como personalizado para definir la aplicación _backend_ que lo crea y a la cual debe comunicarse el _frontend_ cuando lo lea.
 - Se entrega el campo `codigo_acceso_url_whatsapp` en el _endpoint_ `confirmar_cita`.
 - Nuevo campo `codigo_acceso_url_whatsapp` en la tabla `cit_citas`. Para almacenar la dirección del QR que se envía vía WhatsApp, y es entregada por el sistema de Control de Accesos.
 - Nuevo _endpoint_ `confirmar_cita`. Al recibir el número de código de asistencia, se marca la asistencia y se genera un turno en el sistema de turnos, y se regresa toda esa información como resultado de la petición. Si ya existe la asistencia y el turno, solo regresar la información.

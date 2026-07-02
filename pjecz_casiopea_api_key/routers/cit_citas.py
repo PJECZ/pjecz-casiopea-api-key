@@ -543,6 +543,7 @@ async def confirmar_cita(
     current_user: Annotated[UsuarioInDB, Depends(get_current_active_user)],
     database: Annotated[Session, Depends(get_db)],
     cit_cita_codigo_barras: str,
+    sin_validar_fecha: bool = False,
 ):
     """Detalle de una cita a partir de su código de barras"""
     if current_user.permissions.get("CIT CITAS", 0) < Permiso.VER:
@@ -552,8 +553,9 @@ async def confirmar_cita(
         return OneCitCitaConfirmadaOut(success=False, message="ERROR: No existe esta cita")
     if cit_cita.estatus != "A":
         return OneCitCitaConfirmadaOut(success=False, message="ADVERTENCIA: No está habilitada esa cita")
-    if cit_cita.inicio.date() != datetime.today().date():
-        return OneCitCitaConfirmadaOut(success=False, message="ADVERTENCIA: Esta cita no es para el día de hoy.")
+    if not sin_validar_fecha:
+        if cit_cita.inicio.date() != datetime.today().date():
+            return OneCitCitaConfirmadaOut(success=False, message="ADVERTENCIA: Esta cita no es para el día de hoy.")
     if cit_cita.oficina.turnos_unidad_id is None:
         return OneCitCitaConfirmadaOut(success=False, message="ERROR: La oficina no tiene una unidad de turnos asignada.")
     if cit_cita.estado != "PENDIENTE" and cit_cita.estado != "ASISTIO":
@@ -584,12 +586,15 @@ async def confirmar_cita(
         oficina_descripcion_corta=cit_cita.oficina.descripcion_corta,
         cit_servicio_clave=cit_cita.cit_servicio.clave,
         cit_servicio_descripcion=cit_cita.cit_servicio.descripcion,
+        unidad_id=cit_cita.oficina.turnos_unidad_id,
         fecha=cit_cita.inicio.date(),
         hora_inicio=cit_cita.inicio.strftime("%I:%M %p").lower(),
         notas=cit_cita.notas,
+        codigo_acceso_id=cit_cita.codigo_acceso_id,
         codigo_acceso_url=cit_cita.codigo_acceso_url,
         codigo_acceso_url_whatsapp=cit_cita.codigo_acceso_url_whatsapp,
         turno_codigo=cit_cita.turno,
+        turno_id=cit_cita.turno_id,
     )
     return OneCitCitaConfirmadaOut(success=True, message=f"Cita confirmada de {cit_cita.id}", data=CitCitaConfirmadaOut.model_validate(cit_cita_confirmada))
 

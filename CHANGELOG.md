@@ -3,10 +3,12 @@
 Todos los cambios notables en este proyecto serán documentados en este archivo.
 El formato se basa en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/).
 
-## [1.5.0] - 2026-07-01 (Trabajando)
+## [1.5.0] - 2026-07-02 (Trabajando)
 
 ### ✨ Mejoras
 
+- Añadido parámetro opcional en _endpoint_ `confirmar_cita` para evitar validar la fecha y hora de la cita.
+- Incluir los campos `unidad_id`, `codigo_acceso_id` y `turno_id` en la respuesta del _endpoint_ `confirmar_cita`.
 - Se mejoró el código de barras, ahora se utiliza el primer dígito como personalizado para definir la aplicación _backend_ que lo crea y a la cual debe comunicarse el _frontend_ cuando lo lea.
 - Se entrega el campo `codigo_acceso_url_whatsapp` en el _endpoint_ `confirmar_cita`.
 - Nuevo campo `codigo_acceso_url_whatsapp` en la tabla `cit_citas`. Para almacenar la dirección del QR que se envía vía WhatsApp, y es entregada por el sistema de Control de Accesos.

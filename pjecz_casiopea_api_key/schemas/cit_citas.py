@@ -72,12 +72,15 @@ class CitCitaConfirmadaOut(BaseModel):
     oficina_descripcion_corta: str
     cit_servicio_clave: str
     cit_servicio_descripcion: str
+    unidad_id: int
     fecha: date
     hora_inicio: str
     notas: str
+    codigo_acceso_id: int
     codigo_acceso_url: str | None = None
     codigo_acceso_url_whatsapp: str | None = None
     turno_codigo: str
+    turno_id: int
     model_config = ConfigDict(from_attributes=True)
 
 

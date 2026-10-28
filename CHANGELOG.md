@@ -3,6 +3,13 @@
 Todos los cambios notables en este proyecto serán documentados en este archivo.
 El formato se basa en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/).
 
+## [1.6.0] - Sin Publicar
+
+### ✨ Mejoras
+
+- Incluido procedimiento para hacer un _deploy_.
+
+
 ## [1.5.0] - 2026-10-28
 
 ### ✨ Mejoras

@@ -100,10 +100,11 @@ def listar_horas_disponibles(
     inicio_dt = datetime(year=fecha.year, month=fecha.month, day=fecha.day, hour=0, minute=0, second=0)
     termino_dt = datetime(year=fecha.year, month=fecha.month, day=fecha.day, hour=23, minute=59, second=59)
 
-    # Consultar las citas agendadas
+    # Consultar las citas agendadas para ese servicio en esa oficina
     cit_citas = (
         database.query(CitCita)
         .filter(CitCita.oficina_id == oficina.id)
+        .filter(CitCita.cit_servicio_id == cit_servicio.id)
         .filter(CitCita.inicio >= inicio_dt)
         .filter(CitCita.inicio <= termino_dt)
         .filter(CitCita.estado != "CANCELO")

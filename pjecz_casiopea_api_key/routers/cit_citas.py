@@ -2,8 +2,9 @@
 Cit Citas, routers
 """
 
+import json
 from datetime import date, datetime, timedelta
-from typing import Annotated
+from typing import Annotated, Tuple
 
 import requests
 from fastapi import APIRouter, Depends, HTTPException, status
@@ -25,11 +26,12 @@ from ..models.cit_oficinas_servicios import CitOficinaServicio
 from ..models.cit_servicios import CitServicio
 from ..models.oficinas import Oficina
 from ..models.permisos import Permiso
-from ..schemas.cit_citas import CitCitaIn, CitCitaOut, OneCitCitaOut
+from ..schemas.cit_citas import CitCitaIn, CitCitaOut, OneCitCitaOut, CitCitaConfirmadaOut, OneCitCitaConfirmadaOut
 from .cit_dias_disponibles import listar_dias_disponibles
 from .cit_horas_disponibles import listar_horas_disponibles
 from ..services.sendmail import MyRequestError, Email, PlantillaCitaCancelada, PlantillaCitaCreada
 from ..services.codigo_barras import CodigoBarras
+from ..services.turnos import Turnos
 
 LIMITE_CITAS_PENDIENTES = 3
 
@@ -98,6 +100,7 @@ async def crear(
     database: Annotated[Session, Depends(get_db)],
     settings: Annotated[Settings, Depends(get_settings)],
     cit_cita_in: CitCitaIn,
+    sin_validar_fecha: bool = False,
 ):
     """Crear una cita"""
     if current_user.permissions.get("CIT CITAS", 0) < Permiso.CREAR:
@@ -144,13 +147,14 @@ async def crear(
     except NoResultFound:
         return OneCitCitaOut(success=False, message="No se puede agendar el servicio en la oficina")
 
-    # Validar que la fecha sea un día disponible
-    if cit_cita_in.fecha not in listar_dias_disponibles(database, settings):
-        return OneCitCitaOut(success=False, message="No es válida la fecha")
+    if not sin_validar_fecha:
+        # Validar que la fecha sea un día disponible
+        if cit_cita_in.fecha not in listar_dias_disponibles(database, settings):
+            return OneCitCitaOut(success=False, message="No es válida la fecha")
 
-    # Validar la hora_minuto, respecto a las horas disponibles
-    if cit_cita_in.hora_minuto not in listar_horas_disponibles(database, cit_servicio, oficina, cit_cita_in.fecha):
-        return OneCitCitaOut(success=False, message="No es valida la hora-minuto porque no esta disponible")
+        # Validar la hora_minuto, respecto a las horas disponibles
+        if cit_cita_in.hora_minuto not in listar_horas_disponibles(database, cit_servicio, oficina, cit_cita_in.fecha):
+            return OneCitCitaOut(success=False, message="No es valida la hora-minuto porque no esta disponible")
 
     # Definir el inicio de la cita
     inicio_dt = datetime(
@@ -266,6 +270,9 @@ async def crear(
         codigo_acceso_url = contenido.get("imagen")
         if not codigo_acceso_url:
             return OneCitCitaOut(success=False, message="ERROR: Faltó la imagen en la respuesta de Control Acceso")
+        codigo_acceso_url_whatsapp = contenido.get("urlAcceso")
+        if not codigo_acceso_url_whatsapp:
+            return OneCitCitaOut(success=False, message="ERROR: Faltó la url de WhatsApp en la respuesta de Control Acceso")
 
         # Crear el código de barras de asistencia
         codigo_barras = CodigoBarras(database)
@@ -277,7 +284,6 @@ async def crear(
         except Exception as e:
             # Captura cualquier otro error inesperado durante la generación
             return OneCitCitaOut(success=False, message=f"ERROR: No se pudo generar el código de barras de asistencia. {e}")
-
 
     # Guardar
     cit_cita = CitCita(
@@ -292,6 +298,7 @@ async def crear(
         codigo_asistencia=generar_codigo_asistencia(),
         codigo_acceso_id=codigo_acceso_id,
         codigo_acceso_url=codigo_acceso_url,
+        codigo_acceso_url_whatsapp=codigo_acceso_url_whatsapp,
         cancelar_antes=cancelar_antes,
         codigo_barras=codigo_barras_num,
         codigo_barras_url=codigo_barras_url,
@@ -531,3 +538,101 @@ async def paginado(
 
     # Entregar
     return paginate(consulta.filter(CitCita.estatus == "A").order_by(CitCita.id.desc()))
+
+
+@cit_citas.patch("/confirmar_cita", response_model=OneCitCitaConfirmadaOut)
+async def confirmar_cita(
+    current_user: Annotated[UsuarioInDB, Depends(get_current_active_user)],
+    database: Annotated[Session, Depends(get_db)],
+    cit_cita_codigo_barras: str,
+    sin_validar_fecha: bool = False,
+    sin_crear_turno: bool = False,
+):
+    """Detalle de una cita a partir de su código de barras"""
+    margen_cita_minutos = 15
+
+    if current_user.permissions.get("CIT CITAS", 0) < Permiso.VER:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Forbidden")
+    cit_cita = database.query(CitCita).filter_by(codigo_barras=cit_cita_codigo_barras).first()
+    if not cit_cita:
+        return OneCitCitaConfirmadaOut(success=False, message="ERROR: No existe esta cita")
+    if cit_cita.estatus != "A":
+        return OneCitCitaConfirmadaOut(success=False, message="ADVERTENCIA: No está habilitada esa cita")
+    if not sin_validar_fecha:
+        if cit_cita.inicio.date() != datetime.today().date():
+            return OneCitCitaConfirmadaOut(success=False, message="ADVERTENCIA: Esta cita no es para el día de hoy.")
+        if cit_cita.inicio - timedelta(minutes=margen_cita_minutos) > datetime.now():
+            return OneCitCitaConfirmadaOut(success=False, message=f"ADVERTENCIA: Su cita aún no inicia. Puede ingresar {margen_cita_minutos} minutos antes de la hora de inicio.")
+        if cit_cita.inicio + timedelta(minutes=margen_cita_minutos) < datetime.now():
+            return OneCitCitaConfirmadaOut(success=False, message="ADVERTENCIA: Su hora ya superó el tiempo permitido.")
+    if cit_cita.oficina.turnos_unidad_id is None:
+        return OneCitCitaConfirmadaOut(success=False, message="ERROR: La oficina no tiene una unidad de turnos asignada.")
+    if cit_cita.estado not in ("PENDIENTE", "ASISTIO"):
+        return OneCitCitaConfirmadaOut(success=False, message="ADVERTENCIA: Esta cita no está en un estado PENDIENTE")
+    
+    # Solo si está en estado PENDIENTE crea el turno y marca la asistencia,
+    # de lo contrario, solo regresa los datos ya procesados del turno.
+    if cit_cita.estado == "PENDIENTE":
+        if not sin_crear_turno:
+            # Crear Turno
+            resultado, mensaje = _crear_turno(cit_cita, database)
+            if resultado == False:
+                return OneCitCitaConfirmadaOut(success=False, message=f"Error en el sistema de turnos: {mensaje}")
+
+        # Añadir asistencia
+        cit_cita.asistencia = True
+        cit_cita.estado = "ASISTIO"
+        database.add(cit_cita)
+        database.commit()
+        database.refresh(cit_cita)
+
+    # Formar CitCitaConfirmadaOut
+    cit_cita_confirmada = CitCitaConfirmadaOut(
+        id=cit_cita.id,
+        cit_cliente_nombre=cit_cita.cit_cliente.nombre,
+        cit_cliente_telefono=cit_cita.cit_cliente.telefono,
+        cit_cliente_email=cit_cita.cit_cliente.email,
+        oficina_clave=cit_cita.oficina.clave,
+        oficina_descripcion_corta=cit_cita.oficina.descripcion_corta,
+        cit_servicio_clave=cit_cita.cit_servicio.clave,
+        cit_servicio_descripcion=cit_cita.cit_servicio.descripcion,
+        unidad_id=cit_cita.oficina.turnos_unidad_id,
+        fecha=cit_cita.inicio.date(),
+        hora_inicio=cit_cita.inicio.strftime("%I:%M %p").lower(),
+        notas=cit_cita.notas,
+        codigo_acceso_id=cit_cita.codigo_acceso_id,
+        codigo_acceso_url=cit_cita.codigo_acceso_url,
+        codigo_acceso_url_whatsapp=cit_cita.codigo_acceso_url_whatsapp,
+        turno_codigo=cit_cita.turno,
+        turno_id=cit_cita.turno_id,
+    )
+    return OneCitCitaConfirmadaOut(success=True, message=f"Cita confirmada de {cit_cita.id}", data=CitCitaConfirmadaOut.model_validate(cit_cita_confirmada))
+
+
+def _crear_turno(cit_cita: CitCita, database: Session) -> Tuple[bool, str]:
+    """
+    Crea un nuevo turno en el sistema de turnos
+    :return El id del turno generado y el número de turno compuesto.
+    """
+
+    settings = get_settings()
+
+    payload = {
+        "usuario_id": settings.TURNOS_USUARIO_ID,
+        "turno_tipo_id": settings.TURNOS_TIPO_ID,
+        "turno_telefono": cit_cita.cit_cliente.telefono,
+        "unidad_id": cit_cita.oficina.turnos_unidad_id,
+        "comentarios": cit_cita.notas,
+    }
+    payload_json = json.dumps(payload)
+
+    turnos = Turnos(settings)
+    resultado, mensaje = turnos.crear_turno(payload_json)
+
+    if resultado:
+        cit_cita.turno_id = turnos.get_turno_id()
+        cit_cita.turno = turnos.get_turno_codigo()
+        database.add(cit_cita)
+        database.commit()
+
+    return resultado, mensaje

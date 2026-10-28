@@ -92,10 +92,12 @@ class CodigoBarras():
 
     def _generar_codigo_barras_ean13(self) -> str:
         """Genera un código EAN-13 aleatorio de 13 dígitos válido para lectores."""
-        # 1. Generamos un número aleatorio de 12 dígitos
-        # Usamos secrets.randbelow para garantizar un rango limpio de 12 posiciones
-        numero_aleatorio = secrets.randbelow(900000000000) + 100000000000
-        base_12 = str(numero_aleatorio)
+        # 1. Generamos un número aleatorio de 11 dígitos
+        # Usamos secrets.randbelow para garantizar un rango limpio de 11 posiciones
+        numero_aleatorio = secrets.randbelow(90000000000) + 10000000000
+        # Añadimos un número identificador de la app quien crea el código al principio del mismo.
+        APP_CITAS_ID = 1
+        base_12 = str(APP_CITAS_ID) + str(numero_aleatorio)
         
         # 2. Calculamos el dígito 13
         digito_13 = self._calcular_digito_verificador_ean13(base_12)

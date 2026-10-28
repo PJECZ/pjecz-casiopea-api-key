@@ -8,7 +8,6 @@
 *.sqlite3
 *.sqlite3-journal
 *.session.sql
-*.sql
 *.xls
 *.xlsx
 *.XLS

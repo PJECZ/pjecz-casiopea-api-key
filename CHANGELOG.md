@@ -3,6 +3,30 @@
 Todos los cambios notables en este proyecto serán documentados en este archivo.
 El formato se basa en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/).
 
+## [1.5.0] - 2026-10-28
+
+### ✨ Mejoras
+
+- Añadir validación de hora al momento de `confirmar_cita`. Si es menor a 15 minutos antes de la hora pactada, mandar mensaje de advertencia. También si es mayor a 15 minutos.
+- Documentación `README.md` actualizada.
+- Añadido parámetro opcional en _endpoint_ `confirmar_cita` para evitar validar la fecha y hora de la cita.
+- Incluir los campos `unidad_id`, `codigo_acceso_id` y `turno_id` en la respuesta del _endpoint_ `confirmar_cita`.
+- Se mejoró el código de barras, ahora se utiliza el primer dígito como personalizado para definir la aplicación _backend_ que lo crea y a la cual debe comunicarse el _frontend_ cuando lo lea.
+- Se entrega el campo `codigo_acceso_url_whatsapp` en el _endpoint_ `confirmar_cita`.
+- Nuevo campo `codigo_acceso_url_whatsapp` en la tabla `cit_citas`. Para almacenar la dirección del QR que se envía vía WhatsApp, y es entregada por el sistema de Control de Accesos.
+- Nuevo _endpoint_ `confirmar_cita`. Al recibir el número de código de asistencia, se marca la asistencia y se genera un turno en el sistema de turnos, y se regresa toda esa información como resultado de la petición. Si ya existe la asistencia y el turno, solo regresar la información.
+
+### 🐞 Arreglado
+
+- En el _endpoint_ `cit-días-disponibles`, si se proporcionan `oficina_clave` y `cit_servicio_clave`, se filtran los días que ya no tienen horas disponibles para ese servicio en esa oficina.
+- Al consultar las horas disponibles, el límite de citas se aplica por servicio-oficina y no por oficina en general.
+
+### ⚙️ Requerimientos
+
+- Añadir campo `codigo_acceso_url_whatsapp` a la tabla `cit_citas`:
+    - `v1.5.0-01-Add-Campo-cit_citas.sql`.
+
+
 ## [1.4.2] - 2026-06-11
 
 ### 🛠️ Cambios

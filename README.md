@@ -1,23 +1,11 @@
-# 🏛️ [pjecz-casiopea-api-key]
+# 🏛️ pjecz-casiopea-api-key
 
-> Aplicación tipo API para la comunicación con el sistema de gestión SAJI.
+> Aplicación tipo API para la comunicación con el sistema de gestión SAJI y Kiosko.
 
 Proyectos relacionados:
 - [pjecz-casiopea-api-oauth2](https://github.com/PJECZ/pjecz-casiopea-api-oauth2)
 - [pjecz-casiopea-api-key](https://github.com/PJECZ/pjecz-casiopea-api-key)
 - [pjecz-casiopea-reactjs](https://github.com/PJECZ/pjecz-casiopea-reactjs)
-
----
-
-## 📋 Tabla de Contenidos
-
-- [Descripción General](#descripción-general)
-- [Tecnologías Utilizadas](#tecnologías-utilizadas)
-- [Requisitos Previos](#requisitos-previos)
-- [Instalación y Configuración](#instalación-y-configuración)
-- [Estructura de Ramas](#estructura-de-ramas)
-- [Despliegue](#despliegue)
-- [Contacto](#contacto)
 
 ---
 
@@ -27,9 +15,9 @@ Es parte de un conjunto de proyectos para hacer funcionar el sistema de Citas al
 
 ## 🛠️ Tecnologías Utilizadas
 
-* **Lenguaje:** Python 3.14
+* **Lenguaje:** Python v3.14
 * **Framework:** FastAPI
-* **Base de Datos:** PostgreSQL
+* **Base de Datos:** PostgreSQL v15.19
 * **Servidor:** Nginx
 * **Otros:** Sendgrid
 

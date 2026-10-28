@@ -7,11 +7,15 @@ from typing import Annotated
 
 from fastapi import APIRouter, Depends, HTTPException, status
 import pytz
+from sqlalchemy.orm.exc import MultipleResultsFound, NoResultFound
 
 from ..config.settings import Settings, get_settings
 from ..dependencies.authentications import UsuarioInDB, get_current_active_user
 from ..dependencies.database import Session, get_db
+from ..dependencies.safe_string import safe_clave
 from ..models.cit_dias_inhabiles import CitDiaInhabil
+from ..models.cit_servicios import CitServicio
+from ..models.oficinas import Oficina
 from ..models.permisos import Permiso
 from ..schemas.cit_dias_disponibles import ListCitDiaDisponibleOut
 
@@ -69,14 +73,39 @@ async def listado(
     current_user: Annotated[UsuarioInDB, Depends(get_current_active_user)],
     database: Annotated[Session, Depends(get_db)],
     settings: Annotated[Settings, Depends(get_settings)],
+    oficina_clave: str = None,
+    cit_servicio_clave: str = None,
 ):
     """Días disponibles"""
     if current_user.permissions.get("CIT CITAS", 0) < Permiso.CREAR:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Forbidden")
 
+    # Obtener los días disponibles base
+    dias = listar_dias_disponibles(database, settings)
+
+    # Si se dan oficina y servicio, filtrar días sin horas disponibles
+    if oficina_clave and cit_servicio_clave:
+        try:
+            oficina = database.query(Oficina).filter_by(clave=safe_clave(oficina_clave)).one()
+        except (ValueError, MultipleResultsFound, NoResultFound):
+            return ListCitDiaDisponibleOut(success=False, message="No existe esa oficina")
+        if oficina.estatus != "A":
+            return ListCitDiaDisponibleOut(success=False, message="No está habilitada esa oficina")
+        try:
+            cit_servicio = database.query(CitServicio).filter_by(clave=safe_clave(cit_servicio_clave)).one()
+        except (ValueError, MultipleResultsFound, NoResultFound):
+            return ListCitDiaDisponibleOut(success=False, message="No existe ese servicio")
+        if cit_servicio.estatus != "A":
+            return ListCitDiaDisponibleOut(success=False, message="No está habilitado ese servicio")
+
+        # Import local para evitar importación circular (cit_horas_disponibles importa de este módulo)
+        from .cit_horas_disponibles import listar_horas_disponibles
+
+        dias = [dia for dia in dias if listar_horas_disponibles(database, cit_servicio, oficina, dia)]
+
     # Entregar
     return ListCitDiaDisponibleOut(
         success=True,
         message="Listado de días disponibles",
-        data=listar_dias_disponibles(database, settings),
+        data=dias,
     )

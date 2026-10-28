@@ -72,7 +72,6 @@ def safe_string(input_str, max_len=250, do_unidecode=True, save_enie=False, to_u
     if not isinstance(input_str, str):
         return ""
     if do_unidecode:
-        new_string = re.sub(r"[^a-zA-Z0-9.()/-]+", " ", input_str)
         if save_enie:
             new_string = ""
             for char in input_str:
@@ -82,6 +81,7 @@ def safe_string(input_str, max_len=250, do_unidecode=True, save_enie=False, to_u
                     new_string += "Ñ"
                 else:
                     new_string += unidecode(char)
+            new_string = re.sub(r"[^a-zA-ZñÑ0-9.()/-]+", " ", new_string)  # ← línea agregada
         else:
             new_string = re.sub(r"[^a-zA-Z0-9.()/-]+", " ", unidecode(input_str))
     else:

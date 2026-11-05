@@ -1,6 +1,6 @@
 # 🏛️ pjecz-casiopea-api-key
 
-> Aplicación tipo API para la comunicación con el sistema de gestión SAJI y Kiosko.
+> Aplicación tipo API para la comunicación con el sistema de gestión SAJI y Kiosco.
 
 Proyectos relacionados:
 - [pjecz-casiopea-api-oauth2](https://github.com/PJECZ/pjecz-casiopea-api-oauth2)
@@ -27,6 +27,12 @@ Lista de herramientas necesarias para correr el proyecto localmente:
 - Git
 - Python
 - uv - manejador de paquetes para Python
+
+### Extensiones para VSCode
+
+- **Git Graph** – Para ver de forma gráfica el historial git del proyecto.
+- **GitHub Pull Request** – Para poder hacer Pull Request desde VSCode.
+- **Material Icon Theme** – Muestra mejores iconos en el árbol de archivos.
 
 ## 🚀 Instalación y Configuración
 
@@ -64,6 +70,10 @@ Este proyecto sigue el flujo de trabajo institucional:
 - `feature/*`: Ramas temporales para nuevas funcionalidades.
 
 Ver más sobre como contribuir: [CONTRIBUTING](CONTRIBUTING.md)
+
+## 🚚 Deploy
+
+Cómo hacer el _deploy_ o entrega de una versión estable al repositorio institucional PJECZ en **GitHub**. Para saber qué pasos seguir consulte el documento: [DEPLOY](DEPLOY.md).
 
 ## 🚢 Despliegue
 

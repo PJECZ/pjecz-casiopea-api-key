@@ -3,6 +3,16 @@
 Todos los cambios notables en este proyecto serán documentados en este archivo.
 El formato se basa en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/).
 
+## [1.5.1] - 2026-11-05
+
+### ✨ Mejoras
+
+- Incluido procedimiento para hacer un _deploy_.
+
+### 🐞 Arreglado
+
+- Al crear una cita nueva no se incluía el campo `codigo_acceso_url_whatsapp` en la respuesta.
+
 ## [1.5.0] - 2026-10-28
 
 ### ✨ Mejoras

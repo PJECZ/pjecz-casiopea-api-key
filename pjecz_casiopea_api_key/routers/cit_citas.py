@@ -232,6 +232,7 @@ async def crear(
     # Variables para códigos de acceso
     codigo_acceso_id = None
     codigo_acceso_url = None
+    codigo_acceso_url_whatsapp = None
     codigo_barras_num = None
     codigo_barras_url = None
     if oficina.puede_enviar_qr:

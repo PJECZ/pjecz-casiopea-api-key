@@ -3,6 +3,17 @@
 Todos los cambios notables en este proyecto serán documentados en este archivo.
 El formato se basa en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/).
 
+## [1.5.2] - 2026-11-06
+
+### ✏️ Cambios
+
+- Cambiar el orden de entrega del listado de juzgados de los que se puede pedir el servicio de consulta de expedientes `exp_juzgados`. Antes era por el campo `clave` ahora es por `descripcion`.
+
+### ❌ Eliminado
+
+- Archivo de migración de Base de Datos:
+    - `sql/v1.5.0-01-Add-Campo-cit_citas.sql`
+
 ## [1.5.1] - 2026-11-05
 
 ### ✨ Mejoras

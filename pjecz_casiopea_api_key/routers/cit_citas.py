@@ -303,6 +303,7 @@ async def crear(
         cancelar_antes=cancelar_antes,
         codigo_barras=codigo_barras_num,
         codigo_barras_url=codigo_barras_url,
+        api_key_o_oauth2=False,
     )
     database.add(cit_cita)
     database.commit()

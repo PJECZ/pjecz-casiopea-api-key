@@ -3,7 +3,19 @@
 Todos los cambios notables en este proyecto serán documentados en este archivo.
 El formato se basa en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/).
 
-## [1.5.2] - 2026-11-06
+## [1.6.0] 2026-11-23
+
+### ✨ Mejoras
+
+- Nuevo campo `api_key_o_oauth2` tipo `bool` en tabla `cit_citas` para identificar el origen de la creación de la cita. `FALSE = API-KEY`, `TRUE = API-OAUTH2`. Dejamos el valor `NULL` para el histórico.
+
+### ⚙️ Requerimientos
+
+- Archivo SQL para modificación del BD, ejecutar con `psql -d pjecz_casiopea -f <archivo>`:
+    - `sql/v1.6.0-01-add-campo-api_key_o_oauth2-cit_citas.sql`
+
+
+## [1.5.2] 2026-11-06
 
 ### ✏️ Cambios
 
@@ -14,7 +26,7 @@ El formato se basa en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/
 - Archivo de migración de Base de Datos:
     - `sql/v1.5.0-01-Add-Campo-cit_citas.sql`
 
-## [1.5.1] - 2026-11-05
+## [1.5.1] 2026-11-05
 
 ### ✨ Mejoras
 
